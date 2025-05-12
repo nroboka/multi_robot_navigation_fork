@@ -3,9 +3,10 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, Command
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, Command, FindExecutable
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
+import xacro
 
 def generate_launch_description():
 
@@ -55,11 +56,36 @@ def generate_launch_description():
     )
 
     # Define the path to your URDF or Xacro file
-    urdf_file_path = PathJoinSubstitution([
-        pkg_multi_robot_navigation,  # Replace with your package name
-        "urdf",
-        LaunchConfiguration('model')  # Replace with your URDF or Xacro file
-    ])
+    #urdf_file_path = PathJoinSubstitution([
+    #    pkg_multi_robot_navigation,  # Replace with your package name
+    #    "urdf",
+    #    LaunchConfiguration('model')  # Replace with your URDF or Xacro file
+    #])
+
+    name_1 = "robot_1"
+    name_2 = "robot_2"
+
+    xacro_file_1 = os.path.join(pkg_multi_robot_navigation,
+                              "urdf",
+                              f"mogi_bot_1.urdf")
+
+    #doc = xacro.process_file(xacro_file, mappings={'use_sim' : 'true'})
+    #robot_desc = doc.toprettyxml(indent='  ')
+
+    robot_description_content_1 = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name="xacro")]),
+            " ",
+            xacro_file_1,
+            " ",
+            "name:=",
+            "mogi_bot",
+            " ",
+            "tf_prefix:=",
+            name_1
+        ]
+    )
+
 
     gz_bridge_params_path = os.path.join(
         get_package_share_directory('multi_robot_navigation'),
@@ -99,13 +125,27 @@ def generate_launch_description():
         package="ros_gz_sim",
         executable="create",
         arguments=[
-            "-name", "mogi_bot",
-            "-topic", "robot_description",
+            "-entity", name_1,
+            "-string", robot_description_content_1,
+            "-robot_namespace", name_1,
             "-x", LaunchConfiguration('x'), "-y", LaunchConfiguration('y'), "-z", "0.5", "-Y", LaunchConfiguration('yaw')  # Initial spawn position
         ],
         output="screen",
         parameters=[
             {'use_sim_time': LaunchConfiguration('use_sim_time')},
+        ]
+    )
+
+    robot_state_publisher_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher',
+        namespace=name_1,
+        output='screen',
+        parameters=[
+            {'frame_prefix': name_1 + '/',
+             'robot_description': robot_description_content_1,
+             'use_sim_time': LaunchConfiguration('use_sim_time')},
         ]
     )
 
@@ -128,12 +168,12 @@ def generate_launch_description():
         package="ros_gz_image",
         executable="image_bridge",
         arguments=[
-            "/camera/image",
+            "/robot_1/camera/image",
         ],
         output="screen",
         parameters=[
             {'use_sim_time': LaunchConfiguration('use_sim_time'),
-             'camera.image.compressed.jpeg_quality': 75},
+             'robot_1.camera.image.compressed.jpeg_quality': 75},
         ],
     )
 
@@ -143,24 +183,9 @@ def generate_launch_description():
         executable='relay',
         name='relay_camera_info',
         output='screen',
-        arguments=['camera/camera_info', 'camera/image/camera_info'],
+        arguments=['robot_1/camera/camera_info', 'robot_1/camera/image/camera_info'],
         parameters=[
             {'use_sim_time': LaunchConfiguration('use_sim_time')},
-        ]
-    )
-
-    robot_state_publisher_node = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        name='robot_state_publisher',
-        output='screen',
-        parameters=[
-            {'robot_description': Command(['xacro', ' ', urdf_file_path]),
-             'use_sim_time': LaunchConfiguration('use_sim_time')},
-        ],
-        remappings=[
-            ('/tf', 'tf'),
-            ('/tf_static', 'tf_static')
         ]
     )
 
@@ -168,7 +193,9 @@ def generate_launch_description():
         package='mogi_trajectory_server',
         executable='mogi_trajectory_server',
         name='mogi_trajectory_server',
-        parameters=[{'reference_frame_id': 'odom'}]
+        parameters=[{'reference_frame_id': 'robot_1/odom',
+                     'robot_frame_id': 'robot_1/base_footprint',
+                     'trajectory_topic': '/robot_1/trajectory'}]
     )
 
     ekf_node = Node(
