@@ -6,7 +6,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, Command, FindExecutable
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
-import xacro
+from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
 
@@ -112,6 +112,13 @@ def generate_launch_description():
         get_package_share_directory('interactive_marker_twist_server'),
         'config',
         'linear.yaml'
+    )
+
+    cartographer_config_dir = PathJoinSubstitution(
+        [
+            FindPackageShare('multi_robot_navigation'),
+            'config',
+        ]
     )
 
     world_launch = IncludeLaunchDescription(
@@ -225,7 +232,7 @@ def generate_launch_description():
     relay_camera_info_node_1 = Node(
         package='topic_tools',
         executable='relay',
-        name='relay_camera_info',
+        name='relay_camera_info_1',
         output='screen',
         arguments=['robot_1/camera/camera_info', 'robot_1/camera/image/camera_info'],
         parameters=[
@@ -237,7 +244,7 @@ def generate_launch_description():
     relay_camera_info_node_2 = Node(
         package='topic_tools',
         executable='relay',
-        name='relay_camera_info',
+        name='relay_camera_info_2',
         output='screen',
         arguments=['robot_2/camera/camera_info', 'robot_2/camera/image/camera_info'],
         parameters=[
@@ -248,7 +255,8 @@ def generate_launch_description():
     trajectory_node_1 = Node(
         package='mogi_trajectory_server',
         executable='mogi_trajectory_server',
-        name='mogi_trajectory_server',
+        name='mogi_trajectory_server_1',
+        namespace=name_1,
         parameters=[{'reference_frame_id': 'robot_1/odom',
                      'robot_frame_id': 'robot_1/base_footprint',
                      'trajectory_topic': '/robot_1/trajectory'}]
@@ -257,7 +265,8 @@ def generate_launch_description():
     trajectory_node_2 = Node(
         package='mogi_trajectory_server',
         executable='mogi_trajectory_server',
-        name='mogi_trajectory_server',
+        name='mogi_trajectory_server_2',
+        namespace=name_2,
         parameters=[{'reference_frame_id': 'robot_2/odom',
                      'robot_frame_id': 'robot_2/base_footprint',
                      'trajectory_topic': '/robot_2/trajectory'}]
@@ -286,15 +295,51 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='static_transform_1',
-            arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '1.0', 'world', 'robot_1/odom'],
+            namespace=name_1,
+            arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '1.0', 'world', 'robot_1/map'],
     	    parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}])
 
     static_world_transform_2 = Node( 
             package='tf2_ros',
             executable='static_transform_publisher',
             name='static_transform_2',
-            arguments=['0.5', '1.0', '0.0', '0.0', '0.0', '0.0', '1.0', 'world', 'robot_2/odom'],
+            namespace=name_2,
+            arguments=['0.5', '1.0', '0.0', '0.0', '0.0', '0.0', '1.0', 'world', 'robot_2/map'],
     	    parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}])
+
+    cartographer_1 = Node(
+            package='cartographer_ros',
+            executable='cartographer_node',
+            output='screen',
+            namespace=name_1,
+            parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}],
+            arguments=['-configuration_directory', cartographer_config_dir,
+                       '-configuration_basename', "cartographer_1.lua"])
+
+    cartographer_occupancy_1 = Node(
+            package='cartographer_ros',
+            executable='cartographer_occupancy_grid_node',
+            output='screen',
+            namespace=name_1,
+            parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}],
+            arguments=['-resolution', '0.05'])
+
+    cartographer_2 = Node(
+            package='cartographer_ros',
+            executable='cartographer_node',
+            output='screen',
+            namespace=name_2,
+            parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}],
+            arguments=['-configuration_directory', cartographer_config_dir,
+                       '-configuration_basename', "cartographer_2.lua"])
+
+    cartographer_occupancy_2 = Node(
+            package='cartographer_ros',
+            executable='cartographer_occupancy_grid_node',
+            output='screen',
+            namespace=name_2,
+            parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}],
+            arguments=['-resolution', '0.05'])
 
     launchDescriptionObject = LaunchDescription()
 
@@ -322,5 +367,9 @@ def generate_launch_description():
     launchDescriptionObject.add_action(static_world_transform_2)
     #launchDescriptionObject.add_action(ekf_node)
     #launchDescriptionObject.add_action(interactive_marker_twist_server_node)
+    launchDescriptionObject.add_action(cartographer_1)
+    launchDescriptionObject.add_action(cartographer_occupancy_1)
+    launchDescriptionObject.add_action(cartographer_2)
+    launchDescriptionObject.add_action(cartographer_occupancy_2)
 
     return launchDescriptionObject
