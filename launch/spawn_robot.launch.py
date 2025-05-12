@@ -69,8 +69,9 @@ def generate_launch_description():
                               "urdf",
                               f"mogi_bot_1.urdf")
 
-    #doc = xacro.process_file(xacro_file, mappings={'use_sim' : 'true'})
-    #robot_desc = doc.toprettyxml(indent='  ')
+    xacro_file_2 = os.path.join(pkg_multi_robot_navigation,
+                              "urdf",
+                              f"mogi_bot_2.urdf")
 
     robot_description_content_1 = Command(
         [
@@ -86,6 +87,19 @@ def generate_launch_description():
         ]
     )
 
+    robot_description_content_2 = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name="xacro")]),
+            " ",
+            xacro_file_2,
+            " ",
+            "name:=",
+            "mogi_bot",
+            " ",
+            "tf_prefix:=",
+            name_2
+        ]
+    )
 
     gz_bridge_params_path = os.path.join(
         get_package_share_directory('multi_robot_navigation'),
@@ -121,7 +135,7 @@ def generate_launch_description():
     )
 
     # Spawn the URDF model using the `/world/<world_name>/create` service
-    spawn_urdf_node = Node(
+    spawn_urdf_node_1 = Node(
         package="ros_gz_sim",
         executable="create",
         arguments=[
@@ -136,7 +150,7 @@ def generate_launch_description():
         ]
     )
 
-    robot_state_publisher_node = Node(
+    robot_state_publisher_node_1 = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         name='robot_state_publisher',
@@ -145,6 +159,34 @@ def generate_launch_description():
         parameters=[
             {'frame_prefix': name_1 + '/',
              'robot_description': robot_description_content_1,
+             'use_sim_time': LaunchConfiguration('use_sim_time')},
+        ]
+    )
+
+    spawn_urdf_node_2 = Node(
+        package="ros_gz_sim",
+        executable="create",
+        arguments=[
+            "-entity", name_2,
+            "-string", robot_description_content_2,
+            "-robot_namespace", name_2,
+            "-x", "3.5", "-y", "1", "-z", "0.5", "-Y", LaunchConfiguration('yaw')  # Initial spawn position
+        ],
+        output="screen",
+        parameters=[
+            {'use_sim_time': LaunchConfiguration('use_sim_time')},
+        ]
+    )
+
+    robot_state_publisher_node_2 = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher',
+        namespace=name_2,
+        output='screen',
+        parameters=[
+            {'frame_prefix': name_2 + '/',
+             'robot_description': robot_description_content_2,
              'use_sim_time': LaunchConfiguration('use_sim_time')},
         ]
     )
@@ -169,16 +211,18 @@ def generate_launch_description():
         executable="image_bridge",
         arguments=[
             "/robot_1/camera/image",
+            "/robot_2/camera/image",
         ],
         output="screen",
         parameters=[
             {'use_sim_time': LaunchConfiguration('use_sim_time'),
-             'robot_1.camera.image.compressed.jpeg_quality': 75},
+             'robot_1.camera.image.compressed.jpeg_quality': 75,
+             'robot_2.camera.image.compressed.jpeg_quality': 75},
         ],
     )
 
     # Relay node to republish camera_info to /camera_info
-    relay_camera_info_node = Node(
+    relay_camera_info_node_1 = Node(
         package='topic_tools',
         executable='relay',
         name='relay_camera_info',
@@ -189,13 +233,34 @@ def generate_launch_description():
         ]
     )
 
-    trajectory_node = Node(
+    # Relay node to republish camera_info to /camera_info
+    relay_camera_info_node_2 = Node(
+        package='topic_tools',
+        executable='relay',
+        name='relay_camera_info',
+        output='screen',
+        arguments=['robot_2/camera/camera_info', 'robot_2/camera/image/camera_info'],
+        parameters=[
+            {'use_sim_time': LaunchConfiguration('use_sim_time')},
+        ]
+    )
+
+    trajectory_node_1 = Node(
         package='mogi_trajectory_server',
         executable='mogi_trajectory_server',
         name='mogi_trajectory_server',
         parameters=[{'reference_frame_id': 'robot_1/odom',
                      'robot_frame_id': 'robot_1/base_footprint',
                      'trajectory_topic': '/robot_1/trajectory'}]
+    )
+
+    trajectory_node_2 = Node(
+        package='mogi_trajectory_server',
+        executable='mogi_trajectory_server',
+        name='mogi_trajectory_server',
+        parameters=[{'reference_frame_id': 'robot_2/odom',
+                     'robot_frame_id': 'robot_2/base_footprint',
+                     'trajectory_topic': '/robot_2/trajectory'}]
     )
 
     ekf_node = Node(
@@ -217,6 +282,20 @@ def generate_launch_description():
         output='screen',
     )
 
+    static_world_transform_1 = Node( 
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_transform_1',
+            arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '1.0', 'world', 'robot_1/odom'],
+    	    parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}])
+
+    static_world_transform_2 = Node( 
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_transform_2',
+            arguments=['0.5', '1.0', '0.0', '0.0', '0.0', '0.0', '1.0', 'world', 'robot_2/odom'],
+    	    parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}])
+
     launchDescriptionObject = LaunchDescription()
 
     launchDescriptionObject.add_action(rviz_launch_arg)
@@ -229,12 +308,18 @@ def generate_launch_description():
     launchDescriptionObject.add_action(sim_time_arg)
     launchDescriptionObject.add_action(world_launch)
     launchDescriptionObject.add_action(rviz_node)
-    launchDescriptionObject.add_action(spawn_urdf_node)
+    launchDescriptionObject.add_action(spawn_urdf_node_1)
+    launchDescriptionObject.add_action(robot_state_publisher_node_1)
+    launchDescriptionObject.add_action(spawn_urdf_node_2)
+    launchDescriptionObject.add_action(robot_state_publisher_node_2)
     launchDescriptionObject.add_action(gz_bridge_node)
     launchDescriptionObject.add_action(gz_image_bridge_node)
-    launchDescriptionObject.add_action(relay_camera_info_node)
-    launchDescriptionObject.add_action(robot_state_publisher_node)
-    launchDescriptionObject.add_action(trajectory_node)
+    launchDescriptionObject.add_action(relay_camera_info_node_1)
+    launchDescriptionObject.add_action(relay_camera_info_node_2)
+    launchDescriptionObject.add_action(trajectory_node_1)
+    launchDescriptionObject.add_action(trajectory_node_2)
+    launchDescriptionObject.add_action(static_world_transform_1)
+    launchDescriptionObject.add_action(static_world_transform_2)
     #launchDescriptionObject.add_action(ekf_node)
     #launchDescriptionObject.add_action(interactive_marker_twist_server_node)
 
