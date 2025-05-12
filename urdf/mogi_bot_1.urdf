@@ -1,6 +1,6 @@
 <?xml version='1.0'?>
 
-<robot name="mogi_bot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot name="mogi_bot_1" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <!-- STEP 3 - Gazebo plugin -->
   <xacro:include filename="$(find multi_robot_navigation)/urdf/mogi_bot_1.gazebo" />
