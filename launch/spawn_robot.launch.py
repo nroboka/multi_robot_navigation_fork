@@ -221,9 +221,10 @@ def generate_launch_description():
     relay_camera_info_node_1 = Node(
         package='topic_tools',
         executable='relay',
-        name='relay_camera_info_1',
+        name='relay_camera_info',
+        namespace=name_1,
         output='screen',
-        arguments=['robot_1/camera/camera_info', 'robot_1/camera/image/camera_info'],
+        arguments=['camera/camera_info', 'camera/image/camera_info'],
         parameters=[
             {'use_sim_time': LaunchConfiguration('use_sim_time')},
         ]
@@ -233,9 +234,10 @@ def generate_launch_description():
     relay_camera_info_node_2 = Node(
         package='topic_tools',
         executable='relay',
-        name='relay_camera_info_2',
+        name='relay_camera_info',
+        namespace=name_2,
         output='screen',
-        arguments=['robot_2/camera/camera_info', 'robot_2/camera/image/camera_info'],
+        arguments=['camera/camera_info', 'camera/image/camera_info'],
         parameters=[
             {'use_sim_time': LaunchConfiguration('use_sim_time')},
         ]
@@ -264,7 +266,8 @@ def generate_launch_description():
     ekf_node_1 = Node(
         package='robot_localization',
         executable='ekf_node',
-        name='ekf_filter_node_1',
+        name='ekf_filter_node',
+        namespace=name_1,
         output='screen',
         parameters=[
             os.path.join(pkg_multi_robot_navigation, 'config', 'ekf.yaml'),
@@ -275,8 +278,9 @@ def generate_launch_description():
     ekf_node_2 = Node(
         package='robot_localization',
         executable='ekf_node',
-        name='ekf_filter_node_2',
+        name='ekf_filter_node',
         output='screen',
+        namespace=name_2,
         parameters=[
             os.path.join(pkg_multi_robot_navigation, 'config', 'ekf.yaml'),
             {'use_sim_time': LaunchConfiguration('use_sim_time')},
