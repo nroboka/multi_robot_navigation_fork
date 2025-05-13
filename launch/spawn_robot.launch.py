@@ -65,24 +65,20 @@ def generate_launch_description():
     name_1 = "robot_1"
     name_2 = "robot_2"
 
-    xacro_file_1 = os.path.join(pkg_multi_robot_navigation,
+    xacro_file = os.path.join(pkg_multi_robot_navigation,
                               "urdf",
-                              f"mogi_bot_1.urdf")
-
-    xacro_file_2 = os.path.join(pkg_multi_robot_navigation,
-                              "urdf",
-                              f"mogi_bot_2.urdf")
+                              f"mogi_bot.urdf")
 
     robot_description_content_1 = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
-            xacro_file_1,
+            xacro_file,
             " ",
             "name:=",
-            "mogi_bot",
+            "mogi_bot_1",
             " ",
-            "tf_prefix:=",
+            "prefix:=",
             name_1
         ]
     )
@@ -91,12 +87,12 @@ def generate_launch_description():
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
-            xacro_file_2,
+            xacro_file,
             " ",
             "name:=",
-            "mogi_bot",
+            "mogi_bot_2",
             " ",
-            "tf_prefix:=",
+            "prefix:=",
             name_2
         ]
     )
