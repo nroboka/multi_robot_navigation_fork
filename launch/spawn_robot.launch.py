@@ -257,7 +257,7 @@ def generate_launch_description():
         executable='mogi_trajectory_server',
         name='mogi_trajectory_server_1',
         namespace=name_1,
-        parameters=[{'reference_frame_id': 'robot_1/odom',
+        parameters=[{'reference_frame_id': 'world',
                      'robot_frame_id': 'robot_1/base_footprint',
                      'trajectory_topic': '/robot_1/trajectory'}]
     )
@@ -267,7 +267,7 @@ def generate_launch_description():
         executable='mogi_trajectory_server',
         name='mogi_trajectory_server_2',
         namespace=name_2,
-        parameters=[{'reference_frame_id': 'robot_2/odom',
+        parameters=[{'reference_frame_id': 'world',
                      'robot_frame_id': 'robot_2/base_footprint',
                      'trajectory_topic': '/robot_2/trajectory'}]
     )
