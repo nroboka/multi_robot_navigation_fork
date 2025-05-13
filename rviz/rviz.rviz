@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /Robot 11
+        - /Robot 11/Map1/Position1
         - /Robot 21
       Splitter Ratio: 0.5
     Tree Height: 481
@@ -194,8 +195,8 @@ Visualization Manager:
           Visibility:
             Grid: true
             Robot 1:
-              Camera: true
               Imu: true
+              InteractiveMarkers: true
               LaserScan: true
               Map: true
               Path: true
@@ -204,6 +205,7 @@ Visualization Manager:
             Robot 2:
               Camera: true
               Imu: true
+              InteractiveMarkers: true
               LaserScan: true
               Map: true
               Path: true
@@ -244,7 +246,7 @@ Visualization Manager:
           Binary threshold: 100
           Class: rviz_default_plugins/Map
           Color Scheme: map
-          Draw Behind: false
+          Draw Behind: true
           Enabled: true
           Name: Map
           Topic:
@@ -261,6 +263,15 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /robot_1/map_updates
           Use Timestamp: false
+          Value: true
+        - Class: rviz_default_plugins/InteractiveMarkers
+          Enable Transparency: true
+          Enabled: true
+          Interactive Markers Namespace: /robot_1/twist_server
+          Name: InteractiveMarkers
+          Show Axes: false
+          Show Descriptions: false
+          Show Visual Aids: false
           Value: true
       Enabled: true
       Name: Robot 1
@@ -409,14 +420,15 @@ Visualization Manager:
             Robot 1:
               Camera: true
               Imu: true
+              InteractiveMarkers: true
               LaserScan: true
               Map: true
               Path: true
               RobotModel: true
               Value: true
             Robot 2:
-              Camera: true
               Imu: true
+              InteractiveMarkers: true
               LaserScan: true
               Map: true
               Path: true
@@ -457,7 +469,7 @@ Visualization Manager:
           Binary threshold: 100
           Class: rviz_default_plugins/Map
           Color Scheme: map
-          Draw Behind: false
+          Draw Behind: true
           Enabled: true
           Name: Map
           Topic:
@@ -474,6 +486,15 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /robot_2/map_updates
           Use Timestamp: false
+          Value: true
+        - Class: rviz_default_plugins/InteractiveMarkers
+          Enable Transparency: true
+          Enabled: true
+          Interactive Markers Namespace: /robot_2/twist_server
+          Name: InteractiveMarkers
+          Show Axes: false
+          Show Descriptions: false
+          Show Visual Aids: false
           Value: true
       Enabled: true
       Name: Robot 2
@@ -523,25 +544,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 21.0616512298584
+      Distance: 14.352925300598145
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.156528115272522
-        Y: -0.7822845578193665
-        Z: 1.4402284622192383
+        X: 1.600742220878601
+        Y: -1.5600041151046753
+        Z: 2.0072643756866455
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.839796781539917
+      Pitch: 1.0147963762283325
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.6553995609283447
+      Yaw: 2.745396137237549
     Saved: ~
 Window Geometry:
   Camera:

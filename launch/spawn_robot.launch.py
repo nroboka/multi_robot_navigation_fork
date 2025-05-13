@@ -283,13 +283,20 @@ def generate_launch_description():
              ]
     )
 
-    interactive_marker_twist_server_node = Node(
-        package='interactive_marker_twist_server',
-        executable='marker_server',
-        name='twist_server_node',
-        parameters=[interactive_marker_config_file_path],
-        output='screen',
-    )
+    interactive_marker_twist_server_node_1 = Node(
+            package='interactive_marker_twist_server',
+            executable='marker_server',
+            namespace=name_1,
+            parameters=[{'link_name': 'robot_1/base_link'}],
+            remappings=[('/cmd_vel', '/robot_1/cmd_vel')]
+        )
+    interactive_marker_twist_server_node_2 = Node(
+            package='interactive_marker_twist_server',
+            executable='marker_server',
+            namespace=name_2,
+            parameters=[{'link_name': 'robot_2/base_link'}],
+            remappings=[('/cmd_vel', '/robot_2/cmd_vel')]
+        )
 
     static_world_transform_1 = Node( 
             package='tf2_ros',
@@ -366,7 +373,8 @@ def generate_launch_description():
     launchDescriptionObject.add_action(static_world_transform_1)
     launchDescriptionObject.add_action(static_world_transform_2)
     #launchDescriptionObject.add_action(ekf_node)
-    #launchDescriptionObject.add_action(interactive_marker_twist_server_node)
+    launchDescriptionObject.add_action(interactive_marker_twist_server_node_1)
+    launchDescriptionObject.add_action(interactive_marker_twist_server_node_2)
     launchDescriptionObject.add_action(cartographer_1)
     launchDescriptionObject.add_action(cartographer_occupancy_1)
     launchDescriptionObject.add_action(cartographer_2)
