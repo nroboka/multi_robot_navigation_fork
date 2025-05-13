@@ -55,13 +55,6 @@ def generate_launch_description():
         description='Flag to enable use_sim_time'
     )
 
-    # Define the path to your URDF or Xacro file
-    #urdf_file_path = PathJoinSubstitution([
-    #    pkg_multi_robot_navigation,  # Replace with your package name
-    #    "urdf",
-    #    LaunchConfiguration('model')  # Replace with your URDF or Xacro file
-    #])
-
     name_1 = "robot_1"
     name_2 = "robot_2"
 
@@ -268,10 +261,21 @@ def generate_launch_description():
                      'trajectory_topic': '/robot_2/trajectory'}]
     )
 
-    ekf_node = Node(
+    ekf_node_1 = Node(
         package='robot_localization',
         executable='ekf_node',
-        name='ekf_filter_node',
+        name='ekf_filter_node_1',
+        output='screen',
+        parameters=[
+            os.path.join(pkg_multi_robot_navigation, 'config', 'ekf.yaml'),
+            {'use_sim_time': LaunchConfiguration('use_sim_time')},
+             ]
+    )
+
+    ekf_node_2 = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node_2',
         output='screen',
         parameters=[
             os.path.join(pkg_multi_robot_navigation, 'config', 'ekf.yaml'),
@@ -368,7 +372,8 @@ def generate_launch_description():
     launchDescriptionObject.add_action(trajectory_node_2)
     launchDescriptionObject.add_action(static_world_transform_1)
     launchDescriptionObject.add_action(static_world_transform_2)
-    #launchDescriptionObject.add_action(ekf_node)
+    launchDescriptionObject.add_action(ekf_node_1)
+    launchDescriptionObject.add_action(ekf_node_2)
     launchDescriptionObject.add_action(interactive_marker_twist_server_node_1)
     launchDescriptionObject.add_action(interactive_marker_twist_server_node_2)
     launchDescriptionObject.add_action(cartographer_1)
