@@ -20,3 +20,9 @@ ros2 launch multi_robot_navigation multirobot_mapping_cartographer.launch.py
 ```bash
 ros2 launch multi_robot_navigation multirobot_mapping_slam_toolbox.launch.py
 ```
+
+# 3. Start map merging
+
+```bash
+ros2 launch multirobot_map_merge map_merge.launch.py
+```
