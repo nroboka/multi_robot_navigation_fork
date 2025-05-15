@@ -17,7 +17,7 @@ def generate_launch_description():
     os.environ["GZ_SIM_RESOURCE_PATH"] += os.pathsep + gazebo_models_path
 
     world_arg = DeclareLaunchArgument(
-        'world', default_value='home.sdf',
+        'world', default_value='labirintus.sdf',
         description='Name of the Gazebo world file to load'
     )
 
@@ -27,17 +27,17 @@ def generate_launch_description():
     )
 
     x_arg = DeclareLaunchArgument(
-        'x', default_value='2.5',
+        'x', default_value='-8',
         description='x coordinate of spawned robot'
     )
 
     y_arg = DeclareLaunchArgument(
-        'y', default_value='1.5',
+        'y', default_value='2',
         description='y coordinate of spawned robot'
     )
 
     yaw_arg = DeclareLaunchArgument(
-        'yaw', default_value='-1.5707',
+        'yaw', default_value='1.5707',
         description='yaw angle of spawned robot'
     )
 
@@ -129,7 +129,7 @@ def generate_launch_description():
             "-entity", name_2,
             "-string", robot_description_content_2,
             "-robot_namespace", name_2,
-            "-x", "3.5", "-y", "1", "-z", "0.5", "-Y", LaunchConfiguration('yaw')  # Initial spawn position
+            "-x", "-9", "-y", "-1", "-z", "0.5", "-Y", LaunchConfiguration('yaw')  # Initial spawn position
         ],
         output="screen",
         parameters=[
